@@ -1,13 +1,15 @@
 <template>
-
     <div>
-
         <UTable :rows="posts" :columns="columnData" :ui="{ td: { base: 'max-w-[0] truncate' } }">
             <template #id-data="{ row }">
                 <NuxtLink :to="`post/detail/${row.id}`">{{ row.id }}</NuxtLink>
             </template>
+            <template #body-data="{ row }">
+                <UTooltip :text="row.body">
+                    {{ row.body }}
+                </UTooltip>
+            </template>
         </UTable>
-
         <div class="flex justify-end px-3 py-3.5 border-t border-gray-200 dark:border-gray-700">
             <UPagination v-model="currentPage" :page-count="itemsPerPage" :total="totalPosts" :ui="{
             wrapper: 'flex items-center gap-1',
