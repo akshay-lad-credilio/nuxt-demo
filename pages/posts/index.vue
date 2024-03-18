@@ -2,11 +2,11 @@
     <div>
         <UProgress animation="carousel" class="my-4" v-if="isLoaderShow" />
         <div class="grid grid-cols-3 gap-4">
-            <div v-for="post in posts" :key="post.id" class="p-4 rounded bg-gray-100 cursor-pointer"
-                @click="postDetail(post)">
+            <NuxtLink v-for="post in posts" :key="post.id" class="p-4 rounded bg-gray-100 cursor-pointer"
+                :to="`posts/${post.id}`">
                 <h2 class="font-semibold truncate border-b border-gray-300 pb-2">{{ post.title }}</h2>
                 <p class="pt-2 truncate">{{ post.body }}</p>
-            </div>
+            </NuxtLink>
         </div>
         <div class="flex justify-end mt-4 px-3 py-3.5 border-t border-gray-200 border-gray-700">
             <UPagination v-model="currentPage" @click="changePage" :page-count="itemsPerPage" :total="totalPosts" :ui="{
