@@ -23,21 +23,13 @@
 </template>
 
 <script lang="ts" setup>
-interface Post {
-    id: number,
-    userId: number,
-    title: string,
-    body: string
-}
 const router = useRouter();
 let posts: Array<Post> = [];
 let isLoaderShow = ref(true)
 let currentPage = 1;
 const itemsPerPage = 10;
 let totalPosts = 0;
-const postDetail = (post: Post) => {
-    router.push(`/posts/${post.id}`);
-}
+
 const changePage = () => {
     fetchData()
 }
@@ -53,6 +45,5 @@ const fetchData = async () => {
         console.error('Error fetching data:', error);
     }
 };
-
-fetchData()
+onMounted(() => { fetchData() })
 </script>

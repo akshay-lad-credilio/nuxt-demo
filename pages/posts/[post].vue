@@ -41,12 +41,6 @@
   </div>
 </template>
 <script lang="ts" setup>
-interface Post {
-  id: number,
-  userId: number,
-  title: string,
-  body: string
-}
 const isLoaderShow = ref(true)
 const post = ref({} as Post)
 const route = useRoute()
