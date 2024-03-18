@@ -8,7 +8,7 @@
 const links = [{
   label: 'Posts',
   icon: 'i-heroicons-home',
-  to: '/'
+  to: '/posts'
 },
 {
   label: 'Employee',

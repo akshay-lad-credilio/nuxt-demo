@@ -3,7 +3,7 @@
     <UProgress animation="carousel" class="my-4" v-if="isLoaderShow" />
     <template v-else>
       <div class="flex">
-        <div class="flex-none w-20">
+        <div class="w-20">
           <p class="font-semibold">Id:</p>
         </div>
         <div class="grow">
@@ -12,7 +12,7 @@
       </div>
 
       <div class="flex">
-        <div class="flex-none w-20">
+        <div class="w-20">
           <p class="font-semibold">User Id:</p>
         </div>
         <div class="grow">
@@ -21,7 +21,7 @@
       </div>
 
       <div class="flex">
-        <div class="flex-none w-20">
+        <div class="w-20">
           <p class="font-semibold">Title:</p>
         </div>
         <div class="grow">
@@ -30,7 +30,7 @@
       </div>
 
       <div class="flex">
-        <div class="flex-none w-20">
+        <div class="w-20">
           <p class="font-semibold">Body:</p>
         </div>
         <div class="grow">
@@ -48,9 +48,9 @@ interface Post {
   body: string
 }
 const isLoaderShow = ref(true)
-const post = ref(<Post>{})
+const post = ref({} as Post)
 const route = useRoute()
-const postId = route.params.PostId;
+const postId = route.params.post;
 const fetchData = async () => {
   try {
     isLoaderShow.value = true
