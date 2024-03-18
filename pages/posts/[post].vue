@@ -55,6 +55,5 @@ const fetchData = async () => {
     console.error('Error fetching data:', error);
   }
 };
-
-fetchData()
+onMounted(() => { fetchData() })
 </script>
