@@ -1,7 +1,7 @@
 <template>
 
-    <UForm :validate="validate" :state="employee" class="space-y-4" @submit="submitEmployee" @error="onError">
-        <div class="w-96">
+    <UForm :validate="validate" :state="employee" class="space-y-4 flex" @submit="submitEmployee" @error="onError">
+        <div class="w-full md:w-96">
             <div class="mb-2">
                 <UFormGroup label="First Name" name="first_name">
                     <UInput placeholder="Enter First Name" v-model="employee.first_name" />
@@ -22,7 +22,18 @@
                 <UFormGroup label="Pincode" name="pincode">
                     <UInput placeholder="Enter Pincode" :maxlength="6" v-model="employee.pincode" @change="checkPincode"
                         @input="allowNumericValue" />
-                    <span v-if="pincodeError" class="text-red-500">{{ pincodeError }}</span>
+
+                </UFormGroup>
+
+            </div>
+            <div class="mb-2">
+                <UFormGroup label="State" name="state">
+                    <UInput placeholder="Enter State" v-model="employee.state" readonly />
+                </UFormGroup>
+            </div>
+            <div class="mb-2">
+                <UFormGroup label="City" name="city">
+                    <UInput placeholder="Enter City" v-model="employee.city" readonly />
                 </UFormGroup>
             </div>
             <div class="mb-2">
@@ -45,16 +56,12 @@
 </template>
 
 <script setup lang="ts">
-import type { FormError, FormErrorEvent, FormSubmitEvent } from '#ui/types'
-const employeeTypes = ['Business', 'Salaried']
-const employee = ref({
-    first_name: undefined,
-    last_name: undefined,
-    mobile: undefined,
-    pincode: undefined,
-    employe_type: employeeTypes[0],
-    income: undefined,
-})
+import type { FormError, FormErrorEvent } from '#ui/types'
+const employee = ref({} as Employee);
+const employeeTypes = [
+    { label: 'Business', value: 'business' },
+    { label: 'Salaried', value: 'salaried' }
+];
 let pincodeError = ref('')
 let formChanged = ref(false)
 const allowNumericValue = (event: InputEvent) => {
@@ -62,7 +69,8 @@ const allowNumericValue = (event: InputEvent) => {
     input.value = input.value.replace(/\D/g, '');
     formChanged.value = true;
 };
-const validate = (employee: any): FormError[] => {
+
+const validate = (employee: Employee): FormError[] => {
     const errors = []
     if (!employee.first_name) errors.push({ path: 'first_name', message: 'First Name Required' })
     if (!employee.last_name) errors.push({ path: 'last_name', message: 'Last Name Required' })
@@ -75,9 +83,16 @@ const validate = (employee: any): FormError[] => {
     }
     if (!employee.pincode) {
         errors.push({ path: 'pincode', message: 'Pincode Required' })
-    } else if (!/^\d{6}$/.test(employee.pincode)) {
+    }
+    else if (!/^\d{6}$/.test(employee.pincode)) {
         errors.push({ path: 'pincode', message: 'Pincode should be  6 digits ' });
     }
+    debugger;
+    if (!employee.state) {
+        errors.push({ path: 'pincode', message: 'Invalid pincode. Please enter a valid pincode.' })
+    }
+    if (!employee.income) errors.push({ path: 'income', message: 'Income Required' })
+
     formChanged.value = true;
 
     return errors
@@ -100,18 +115,19 @@ async function onError(event: FormErrorEvent) {
 }
 async function checkPincode() {
     try {
+        employee.value.state = ''
+        employee.value.city = ''
         const response = await fetch(`https://api.postalpincode.in/pincode/${employee.value.pincode}`)
         const data = await response.json()
+
         if (data && data.length > 0) {
             const pincodeDetails = data[0]
-            if (pincodeDetails.Status === 'Error') {
-                pincodeError.value = 'Invalid pincode. Please enter a valid pincode.'
-            } else {
-                pincodeError.value = ''
+            if (pincodeDetails.Status !== 'Error') {
+                employee.value.state = pincodeDetails.PostOffice[0].State
+                employee.value.city = pincodeDetails.PostOffice[0].District
             }
-        } else {
-            pincodeError.value = 'Invalid pincode. Please enter a valid pincode.'
         }
+        validate(employee.value)
     } catch (error) {
         console.error('Error checking pincode:', error)
         pincodeError.value = 'An error occurred while checking the pincode. Please try again later.'
@@ -134,7 +150,7 @@ onBeforeRouteLeave((to, from, next) => {
     }
 })
 onMounted(() => {
-    if (sessionStorage && sessionStorage.getItem('employee') && typeof sessionStorage.getItem('employee') === 'string') {
+    if (sessionStorage && sessionStorage.getItem('employee')) {
         const employeeData: string = sessionStorage.getItem('employee') || ''
         employee.value = JSON.parse(employeeData)
     }
