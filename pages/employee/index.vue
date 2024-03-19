@@ -1,40 +1,41 @@
 <template>
-    <UForm :validate="validate" :state="state" class="space-y-4" @submit="onSubmit" @error="onError">
+
+    <UForm :validate="validate" :state="employee" class="space-y-4" @submit="submitEmployee" @error="onError">
         <div class="w-96">
-            <div class="min-w-80 mb-2">
+            <div class="mb-2">
                 <UFormGroup label="First Name" name="first_name">
-                    <UInput placeholder="Enter First Name" v-model="state.first_name" />
+                    <UInput placeholder="Enter First Name" v-model="employee.first_name" />
                 </UFormGroup>
             </div>
-            <div class="min-w-80 mb-2">
+            <div class="mb-2">
                 <UFormGroup label="Last Name" name="last_name">
-                    <UInput placeholder="Enter Last Name" v-model="state.last_name" />
+                    <UInput placeholder="Enter Last Name" v-model="employee.last_name" />
                 </UFormGroup>
             </div>
-            <div class="min-w-80 mb-2">
+            <div class="mb-2">
                 <UFormGroup label="Mobile" name="mobile">
-                    <UInput placeholder="Enter Mobile" v-model="state.mobile" :maxlength="10"
+                    <UInput placeholder="Enter Mobile" v-model="employee.mobile" :maxlength="10"
                         @input="allowNumericValue" />
                 </UFormGroup>
             </div>
-            <div class="min-w-80 mb-2">
+            <div class="mb-2">
                 <UFormGroup label="Pincode" name="pincode">
-                    <UInput placeholder="Enter Pincode" :maxlength="6" v-model="state.pincode" @change="checkPincode"
+                    <UInput placeholder="Enter Pincode" :maxlength="6" v-model="employee.pincode" @change="checkPincode"
                         @input="allowNumericValue" />
                     <span v-if="pincodeError" class="text-red-500">{{ pincodeError }}</span>
                 </UFormGroup>
             </div>
-            <div class="min-w-80 mb-2">
+            <div class="mb-2">
                 <UFormGroup name="Employment Type" label="Employment Type">
-                    <UInputMenu v-model="state.employe_type" :options="people" />
+                    <UInputMenu v-model="employee.employe_type" :options="employeeTypes" />
                 </UFormGroup>
             </div>
-            <div class="min-w-80 mb-2">
+            <div class="mb-2">
                 <UFormGroup :label="incomeTitle" name="income">
-                    <UInput :placeholder="`Enter ${incomeTitle}`" v-model="state.income" />
+                    <UInput :placeholder="`Enter ${incomeTitle}`" v-model="employee.income" />
                 </UFormGroup>
             </div>
-            <div class="min-w-80 mb-2">
+            <div class="mb-2">
                 <UButton type="submit">
                     Submit
                 </UButton>
@@ -45,44 +46,51 @@
 
 <script setup lang="ts">
 import type { FormError, FormErrorEvent, FormSubmitEvent } from '#ui/types'
-const people = ['Business', 'Salaried']
-const state = ref({
+const employeeTypes = ['Business', 'Salaried']
+const employee = ref({
     first_name: undefined,
     last_name: undefined,
     mobile: undefined,
     pincode: undefined,
-    employe_type: people[0],
+    employe_type: employeeTypes[0],
     income: undefined,
 })
 let pincodeError = ref('')
+let formChanged = ref(false)
 const allowNumericValue = (event: InputEvent) => {
     const input = event.target as HTMLInputElement;
-    input.value = input.value.replace(/\D/g, ''); // Remove non-numeric characters
+    input.value = input.value.replace(/\D/g, '');
+    formChanged.value = true;
 };
-const validate = (state: any): FormError[] => {
+const validate = (employee: any): FormError[] => {
     const errors = []
-    if (!state.first_name) errors.push({ path: 'first_name', message: 'First Name Required' })
-    if (!state.last_name) errors.push({ path: 'last_name', message: 'Last Name Required' })
+    if (!employee.first_name) errors.push({ path: 'first_name', message: 'First Name Required' })
+    if (!employee.last_name) errors.push({ path: 'last_name', message: 'Last Name Required' })
 
-    if (!state.employe_type) errors.push({ path: 'employe_type', message: 'Employee Type Required' })
-    if (!state.mobile) {
+    if (!employee.employe_type) errors.push({ path: 'employe_type', message: 'Employee Type Required' })
+    if (!employee.mobile) {
         errors.push({ path: 'mobile', message: 'Mobile Number Required' })
-    } else if (!/^\d{10}$/.test(state.mobile)) {
+    } else if (!/^\d{10}$/.test(employee.mobile)) {
         errors.push({ path: 'mobile', message: 'Mobile Number should be  10 digits ' });
     }
-    if (!state.pincode) {
+    if (!employee.pincode) {
         errors.push({ path: 'pincode', message: 'Pincode Required' })
-    } else if (!/^\d{6}$/.test(state.pincode)) {
-        errors.push({ path: 'pincode', message: 'Mobile Number should be  6 digits ' });
+    } else if (!/^\d{6}$/.test(employee.pincode)) {
+        errors.push({ path: 'pincode', message: 'Pincode should be  6 digits ' });
     }
+    formChanged.value = true;
+
     return errors
 }
+
 const incomeTitle = computed(() => {
-    return state.value.employe_type === 'Business' ? 'Income' : 'Salary';
+    return employee.value.employe_type === 'Business' ? 'Income' : 'Salary';
 });
-async function onSubmit(event: FormSubmitEvent<any>) {
-    // Do something with data
-    sessionStorage.setItem('employee', JSON.stringify(event.data));
+function submitEmployee() {
+    if (pincodeError.value === '') {
+        sessionStorage.setItem('employee', JSON.stringify(employee.value));
+        formChanged.value = false;
+    }
 }
 
 async function onError(event: FormErrorEvent) {
@@ -92,7 +100,7 @@ async function onError(event: FormErrorEvent) {
 }
 async function checkPincode() {
     try {
-        const response = await fetch(`https://api.postalpincode.in/pincode/${state.value.pincode}`)
+        const response = await fetch(`https://api.postalpincode.in/pincode/${employee.value.pincode}`)
         const data = await response.json()
         if (data && data.length > 0) {
             const pincodeDetails = data[0]
@@ -110,10 +118,25 @@ async function checkPincode() {
     }
 
 }
+onBeforeRouteLeave((to, from, next) => {
+    if (formChanged.value) {
+        const confirmed = window.confirm(
+            "Changes in the form. Do you want to save them before leaving?"
+        );
+        if (confirmed) {
+            submitEmployee()
+            next();
+        } else {
+            next(false); // Prevent leaving the route
+        }
+    } else {
+        next();
+    }
+})
 onMounted(() => {
     if (sessionStorage && sessionStorage.getItem('employee') && typeof sessionStorage.getItem('employee') === 'string') {
-        const employee: string = sessionStorage.getItem('employee') || ''
-        state.value = JSON.parse(employee)
+        const employeeData: string = sessionStorage.getItem('employee') || ''
+        employee.value = JSON.parse(employeeData)
     }
 })
 </script>
